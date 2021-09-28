@@ -7,18 +7,26 @@ from django.shortcuts import render
 from .utils import Util
 
 # Model - User
-from AppResult.models import User
+from AppResult.models import User, StudentRegistrationModel, TeacherModel, StudentResultModel
 
 # Serializer 
-from .serialiazers import RegisterUserSerializers                           # Custom User Register Serializer
+from AppResult.serialiazers import (
+    RegisterUserSerializers,                                               # Custom User Register Serializer
+    StudentRegistrationSerializers,                                        # Student Registrations Serializer
+    TeacherSerializers,                                                    # Teacher Serializer
+    StudentResultSerializers,                                              # Student Result Serializers 
+    )
 
 # Rest Framework 
 from rest_framework import status                                           # Set HTTP Status
 from rest_framework import generics                                         # Set Generic Method
 from rest_framework.response import Response                                # Response HTTP status
+from rest_framework import viewsets                                         # CRUD view route
+from rest_framework.permissions import IsAuthenticated
 
 # Simple Json Web Token
 from rest_framework_simplejwt.tokens import RefreshToken                    # Send Token for Email verification
+from rest_framework_simplejwt.authentication import JWTAuthentication       # Show data with Token 
 
 # System Modules 
 from django.contrib.sites.shortcuts import get_current_site                 # For our Domain for Email Verification
@@ -30,6 +38,9 @@ from django.urls import reverse                                             # Re
 # Json Web token
 import jwt                                                                  # Decode Token for verification
 
+
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import AllowAny
 
 
 
@@ -68,8 +79,6 @@ class RegisterView(generics.GenericAPIView):
         return Response(user_data,status=status.HTTP_201_CREATED)           # Give Status 
 
 
-
-
 ''' * Decode Token & Verify Email * '''
 class VerifyEmail(generics.GenericAPIView):
 
@@ -79,7 +88,7 @@ class VerifyEmail(generics.GenericAPIView):
         
         try:
 
-            payload= jwt.decode(token, settings.SECRET_KEY,algorithms='HS256')                      # Decode Token
+            payload= jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')                      # Decode Token
             user= User.objects.get(id=payload['user_id'])                                           # Get id - Email 
             
             # verify Email conditions
@@ -98,5 +107,25 @@ class VerifyEmail(generics.GenericAPIView):
 
 
 
+# Student Regitration API 
+class StudentRegistrationAPIView(viewsets.ModelViewSet):
+
+    queryset= StudentRegistrationModel.objects.filter(is_active=True)
+    serializer_class= StudentRegistrationSerializers
+    authentication_classes= [JWTAuthentication]
+    permission_classes= [IsAuthenticated]
 
 
+class TeacherAPIView(viewsets.ModelViewSet):
+
+    queryset= TeacherModel.objects.filter(is_active=True)
+    serializer_class= TeacherSerializers
+    authentication_classes= [JWTAuthentication]
+    permission_classes= [IsAuthenticated]
+
+class StudentResultAPIView(viewsets.ModelViewSet):
+
+    queryset= StudentResultModel.objects.all()
+    serializer_class= StudentResultSerializers
+    # authentication_classes= [BasicAuthentication]
+    # permission_classes= [AllowAny]
