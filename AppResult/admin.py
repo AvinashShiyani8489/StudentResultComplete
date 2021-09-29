@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Model
-from AppResult.models import User, StudentRegistrationModel, TeacherModel, StudentResultModel
+from AppResult.models import User, StudentRegistrationModel, StudentResultModel
 
 from django.contrib.auth.admin import UserAdmin
 
@@ -61,16 +61,17 @@ class StudentRegistrationAdmin(admin.ModelAdmin):
     # See Fields and data in Index of Model 
     list_display= ["student_id", "student_first_name", 'student_last_name', 'admission_std', 'admission_stream']
 
+    readonly_fields= ['student_id', 'full_name']
     # Set Fields Arrangement 
     fieldsets = (
         # User Informations
         ('Register Info:', {
-            'fields': ('student_id',)
+            'fields': ('student_id',),
         }),
 
         # Student Personal Informations
         ('Student Personal Info', {
-            'fields': ('student_first_name', 'student_middel_name', 'student_last_name', 'gender', 'birth_date'),
+            'fields': ('student_first_name', 'student_middel_name', 'student_last_name', 'gender', 'full_name', 'birth_date'),
         }),
 
         # Parents Informations
@@ -95,7 +96,7 @@ class StudentRegistrationAdmin(admin.ModelAdmin):
 
         # School Deatils 
         ('Admission Durations', {
-            'fields': ('admission_date','leave_date'),
+            'fields': ('admission_date',),
         }),
 
         # Authentications
@@ -104,67 +105,36 @@ class StudentRegistrationAdmin(admin.ModelAdmin):
         }))
 
 
-# Teacher Admin 
-@admin.register(TeacherModel)
-class TeacherAdmin(admin.ModelAdmin):
-    list_display= ['teacher_id', 'first_name', 'last_name', 'subject_name']
+# Student Result
+@admin.register(StudentResultModel)
+class StudentResultAdmin(admin.ModelAdmin):
+    list_display= ['id', 'student_name', 'result']
+    readonly_fields= ['id', 'total_marks', 'result', 'percentage']
 
-    
     # Set Fields Arrangement 
     fieldsets = (
         # User Informations
         ('Register Info:', {
-            'fields': ('teacher_id',)
+            'fields': ('id',),
         }),
 
-        # Student Personal Informations
-        ('Teacher Info', {
-            'fields': ('first_name', 'last_name', 'gender', 'birth_date'),
+        # Student 
+        ('Student Personal Info', {
+            'fields': ('student_name',),
         }),
 
-        # Contact Informations
-        ('Contact Info', {
-            'fields': ('mobile', 'email', 'address', 'area', 'city', 'pincode'),
+        # Subject Marks
+        ('Subject Marks', {
+            'fields': ('maths', 'english', 'science', 'computer',),
         }),
 
-        # School Deatils 
-        ('Teacher Details', {
-            'fields': ('subject_name', 'join_date', 'leave_date'),
+        # Result Informations
+        ('Result Info', {
+            'fields': ('total_marks', 'result', 'percentage',),
         }),
 
         # Authentications
         ('Authentication', {
             'fields': ('is_active', ),
         })
-    )
-
-
-# Student Result
-@admin.register(StudentResultModel)
-class StudentResultAdmin(admin.ModelAdmin):
-    list_display= ['id', 'student_first_name', 'student_last_name', 'admission_std', 'teacher_id', 'result']
-
-    # Set Fields Arrangement 
-    fieldsets = (
-
-        # Student Details 
-        ('Student Info', {
-            'fields': ('student_id', 'student_first_name', 'student_last_name'),
-        }),
-
-        # Standard
-        ('Class Info', {
-            'fields': ('admission_std', 'admission_stream'),
-        }),
-
-        # Teacher Details 
-        ('Teacher Details', {
-            'fields': ('teacher_id', 'subject_name'),
-        }),
-
-        # Result Info 
-        ('Result Informations', {
-            'fields': ('english' ,'maths', 'science', 'computer', 'total_marks', 'result', 'percentage'),
-        }),
-
     )

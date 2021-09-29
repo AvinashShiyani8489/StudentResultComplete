@@ -13,7 +13,6 @@ from AppResult.views import (
    StudentResultAPIView,                                                                          # Register User View 
    VerifyEmail,                                                                           # Verify Email View 
    StudentRegistrationAPIView,                                                            # Student Registraion table 
-   TeacherAPIView,                                                                        # Teacher Table
    )
 
 
@@ -26,7 +25,6 @@ router = DefaultRouter()
 
 # Student Registration Router API
 router.register("stureg", StudentRegistrationAPIView, basename="studentregistration")
-router.register("teacher",TeacherAPIView, basename="teachertable")
 router.register("result",StudentResultAPIView, basename="result")
 
 

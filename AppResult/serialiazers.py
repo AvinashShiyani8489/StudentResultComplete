@@ -1,10 +1,9 @@
 # Modules
-from django.db.models import fields
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
-from rest_framework.fields import ReadOnlyField
 
 # Model 
-from AppResult.models import StudentResultModel, User, StudentRegistrationModel, TeacherModel
+from AppResult.models import StudentResultModel, User, StudentRegistrationModel
 
 """Create your Serializers here."""
 
@@ -12,8 +11,8 @@ from AppResult.models import StudentResultModel, User, StudentRegistrationModel,
 class RegisterUserSerializers(serializers.ModelSerializer):
     
     # Password Velidator
-    password= serializers.CharField(max_length= 50, min_length= 6, write_only= True)
-
+    password= serializers.CharField(max_length= 50, min_length= 6, write_only= True, style={'input_type': 'password', 'placeholder': 'Password'})
+    
     class Meta:
         model= User
         fields= ['username', 'email', 'role', 'first_name', 'last_name', 'birth_date', 'gender', 'mobile', 'address', 'area', 'city', 'pincode', 'password']
@@ -43,10 +42,79 @@ class RegisterUserSerializers(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+# Student Result 
+class StudentResultSerializers(serializers.ModelSerializer):   
 
+    # Set Validator & Styles in Fields 
+    english = serializers.IntegerField(
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ],
+        style= {
+            'input_type': 'number',
+            'placeholder': "Enter Marks"
+        })
+
+    maths = serializers.IntegerField(
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ],
+        style= {
+            'input_type': 'number',
+            'placeholder': "Enter Marks"
+        })
+
+    computer = serializers.IntegerField(
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ],
+        style= {
+            'input_type': 'number',
+            'placeholder': "Enter Marks"
+        })
+    
+    science = serializers.IntegerField(
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ],
+        style= {
+            'input_type': 'number',
+            'placeholder': "Enter  Marks"
+        })
+
+    class Meta:
+
+        # Import Model
+        model= StudentResultModel
+
+        # Import Fields 
+        fields= [
+            'student_name',
+            'english',
+            'maths',
+            'science',
+            'computer',
+            'total_marks',
+            'result',
+            'percentage'        
+        ]
+
+    # Read Only Field 
+    total_marks = serializers.ReadOnlyField()
+    result= serializers.ReadOnlyField()
+    percentage= serializers.ReadOnlyField()
+
+    
 
 # Student Registration Serializers 
 class StudentRegistrationSerializers(serializers.ModelSerializer):
+
+    # Nested Serializers 
+    Result = StudentResultSerializers(many=True, read_only=True)
 
     class Meta:
         # Import Model 
@@ -57,7 +125,8 @@ class StudentRegistrationSerializers(serializers.ModelSerializer):
             'student_first_name', 
             'student_middel_name', 
             'student_last_name', 
-            'gender', 
+            'gender',
+            'full_name',
             'birth_date', 
             'relations',
             'parents_first_name',
@@ -73,64 +142,8 @@ class StudentRegistrationSerializers(serializers.ModelSerializer):
             'previous_std',
             'percentage',
             'admission_date',
-            'leave_date'
-            ]
-
-
-
-# Teacher Serializers 
-class TeacherSerializers(serializers.ModelSerializer):
-
-    class Meta:
-
-        # Import Model
-        model= TeacherModel
-
-        # Import Fields
-        fields = [
-            'teacher_id',
-            'first_name',
-            'last_name',
-            'gender',
-            'birth_date',
-            'mobile',
-            'email',
-            'address',
-            'area',
-            'city',
-            'pincode',
-            'subject_name',
-            'join_date',
-            'leave_date'
-        ]
-
-
-# Student Result 
-class StudentResultSerializers(serializers.ModelSerializer):   
-    class Meta:
-
-        # Import Model
-        model= StudentResultModel
-
-        # Import Fields 
-        fields= [
-            'student_id',
-            'student_first_name',
-            'student_last_name',
-            'admission_std',
-            'admission_stream',
-            'teacher_id',
-            'subject_name',
-            'english',
-            'maths',
-            'science',
-            'computer',
-            'total_marks',
-            'result',
-            'percentage'
+            'Result',
         ]
 
     # Read Only Field 
-    total_marks = serializers.ReadOnlyField()
-    result= serializers.ReadOnlyField()
-    percentage= serializers.ReadOnlyField()
+    full_name = serializers.ReadOnlyField()

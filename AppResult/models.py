@@ -5,7 +5,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 # Set RegexValidator in Fields
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from rest_framework.fields import ReadOnlyField
 
 
 
@@ -223,7 +224,7 @@ class StudentRegistrationModel(models.Model):
 
     # Fields with Validators 
     
-    student_id= models.CharField(primary_key=True, max_length=500)
+    student_id= models.AutoField(primary_key=True)
     
     # Personal 
     student_first_name= models.CharField(
@@ -266,7 +267,8 @@ class StudentRegistrationModel(models.Model):
         choices=Select_Student_Gender,
         default= None)
     
-    
+    full_name = models.CharField(max_length=500, null=True, blank=True)
+
     birth_date= models.DateField(auto_now=False, auto_now_add=False)
 
     # Parents Details
@@ -379,6 +381,8 @@ class StudentRegistrationModel(models.Model):
         choices=Select_Stream,
         default=None)
 
+    
+
         # Previous Details
     Select_Previous_Std = [
         (None, "Choose Student STD."),
@@ -398,12 +402,18 @@ class StudentRegistrationModel(models.Model):
         choices=Select_Previous_Std,
         default=None)
 
-    percentage= models.DecimalField(max_digits=5, decimal_places=2)
+    percentage= models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ])
 
 
     #School Deatils
-    admission_date= models.DateField(auto_now_add=False)
-    leave_date= models.DateField(auto_now=False, auto_now_add=False)
+    admission_date= models.DateField(auto_now_add=False,auto_now= False)
+    
     
     #Other Details 
     is_active= models.BooleanField(default=True)
@@ -411,160 +421,59 @@ class StudentRegistrationModel(models.Model):
 
     # Capitalize 
     def save(self, *args, **kwargs):
-        for field_name in ['student_id', 'student_first_name', 'student_middel_name', 'student_last_name', 'parents_first_name', 'parents_last_name', 'address', 'area', 'city',]:
+        for field_name in ['student_first_name', 'student_middel_name', 'student_last_name', 'parents_first_name', 'parents_last_name', 'address', 'area', 'city',]:
             val = getattr(self, field_name, False)
             if val:
                 setattr(self, field_name, val.title())
+
+
+        self.full_name = self.student_first_name + " " + self.student_middel_name + " " + self.student_last_name
+
         super(StudentRegistrationModel, self).save(*args, **kwargs)
 
-# Teacher Model 
-class TeacherModel(models.Model):
-
-    # Field With Validator
-
-    teacher_id= models.CharField(primary_key=True, max_length=50, db_index=True)
-
-    # Personal Details 
-    first_name= models.CharField(
-        max_length=100,
-        validators=[
-            RegexValidator(
-                regex='^[a-zA-Z]*$',
-                message='First Name must be Alphabet',
-                code='invalid_firstName'
-            )
-        ])
-        
-    last_name= models.CharField(
-        max_length=100,
-        validators=[
-            RegexValidator(
-                regex='^[a-zA-Z]*$',
-                message='First Name must be Alphabet',
-                code='invalid_firstName'
-            )
-        ])
-
-    Select_Teacher_Gender = [
-        (None, "Choose your gender"),
-        ("male", "Male"),
-        ("female", "Female"),
-        ("prefer not to say", "prefer not to say")]
-    gender= models.CharField(
-        max_length=50,
-        choices=Select_Teacher_Gender,
-        default=None)
-
-    birth_date= models.DateField()
-
-    # Contact Information
-    mobile= models.CharField(
-        max_length=12,
-        validators=[
-            RegexValidator(
-                regex='^[0-9+]*$',
-                message='Only Numberic or start with + ',
-                code='Invalid_MobileNumber'
-            )
-        ])
-
-    email= models.EmailField(
-        max_length=254, 
-        unique= True,
-        validators=[
-            RegexValidator(
-                regex="^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$",
-                message='Email must be properly(user@domanname.com or in or edu)',
-                code='invalid_Email'
-            )
-        ])
-
-    address= models.TextField()
-
-    area= models.CharField(max_length=50)
-
-    city= models.CharField(
-        max_length=100,
-        validators=[
-            RegexValidator(
-                regex='^[a-zA-Z]*$',
-                message='City Name must be Alphabet',
-                code='Invalid City Name'
-            )
-        ])
-
-    pincode= models.CharField(
-        max_length=6,
-        validators=[
-            RegexValidator(
-                regex='^[0-9]*$',
-                message='Only Numberic',
-                code='Invalid Pincode'
-            )
-        ])
-
-    # School Details 
-    Select_Subject= [
-        (None, "Choose Student Stream"),
-        ("Science", "Science"),
-        ("Math", "Maths"),
-        ("English", "English"),
-        ("Computer", "Computer")]
-    subject_name= models.CharField(
-        max_length=50,
-        choices=Select_Subject,
-        default=None)
-
-    join_date= models.DateField(auto_now_add=False)
-    leave_date= models.DateField(null=True)
-
-
-    #Other Details 
-    is_active= models.BooleanField(default=True)
-
-    # Capitalize 
-    def save(self, *args, **kwargs):
-        for field_name in ['teacher_id', 'first_name', 'last_name', 'address', 'area', 'city',]:
-            val = getattr(self, field_name, False)
-            if val:
-                setattr(self, field_name, val.title())
-        super(TeacherModel, self).save(*args, **kwargs)
+    def __str__(self):
+        return self.full_name
 
 # Student Result 
 class StudentResultModel(models.Model):
 
-    student_id= models.CharField(max_length=50)
-
+   
     # Student Details 
-    student_first_name= models.CharField(max_length=50)
-    student_last_name= models.CharField(max_length=50)
+    student_name= models.ForeignKey(StudentRegistrationModel, on_delete=models.CASCADE, related_name= "Result", unique=True)
     
-    admission_std= models.CharField(max_length=50)
-    admission_stream= models.CharField(max_length=50)
-
-    teacher_id= models.CharField(max_length=50)
-    subject_name= models.CharField(max_length=50)
-
-
-    # Mark 
-    english= models.IntegerField()
-    maths= models.IntegerField()
-    science= models.IntegerField()
-    computer= models.IntegerField()
+    # Mark of Subject with Validator
+    english= models.IntegerField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ])
+    
+    maths= models.IntegerField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ])
+    
+    science= models.IntegerField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ])
+    
+    computer= models.IntegerField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ])
+    
 
     total_marks= models.IntegerField(null=True, blank=True)
 
-    Select_result= [
-        (None, "Select Result"),
-        ("Fail", "Fail"),
-        ("Pass", "Pass")]
-    result= models.CharField(
-        max_length=50,
-        choices=Select_result,
-        default=None)
+    result= models.CharField(max_length=50,null=True, blank=True)
 
     percentage= models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     
+    is_active = models.BooleanField(default=True)
   
     # Calculate Marks & Capitalize 
     def save(self, *args, **kwargs):
@@ -584,11 +493,8 @@ class StudentResultModel(models.Model):
         else:
             self.percentage = 0    
 
-        # Capitalize
-        for field_name in ['student_id', 'student_first_name', 'student_last_name',]:
-            val = getattr(self, field_name, False)
-            if val:
-                setattr(self, field_name, val.title())
-
+            
         # Save Method      
         super(StudentResultModel, self).save(*args, **kwargs)
+
+    

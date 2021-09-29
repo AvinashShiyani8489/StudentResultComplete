@@ -7,13 +7,12 @@ from django.shortcuts import render
 from .utils import Util
 
 # Model - User
-from AppResult.models import User, StudentRegistrationModel, TeacherModel, StudentResultModel
+from AppResult.models import User, StudentRegistrationModel, StudentResultModel
 
 # Serializer 
 from AppResult.serialiazers import (
     RegisterUserSerializers,                                               # Custom User Register Serializer
     StudentRegistrationSerializers,                                        # Student Registrations Serializer
-    TeacherSerializers,                                                    # Teacher Serializer
     StudentResultSerializers,                                              # Student Result Serializers 
     )
 
@@ -39,8 +38,6 @@ from django.urls import reverse                                             # Re
 import jwt                                                                  # Decode Token for verification
 
 
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import AllowAny
 
 
 
@@ -115,17 +112,24 @@ class StudentRegistrationAPIView(viewsets.ModelViewSet):
     authentication_classes= [JWTAuthentication]
     permission_classes= [IsAuthenticated]
 
-
-class TeacherAPIView(viewsets.ModelViewSet):
-
-    queryset= TeacherModel.objects.filter(is_active=True)
-    serializer_class= TeacherSerializers
-    authentication_classes= [JWTAuthentication]
-    permission_classes= [IsAuthenticated]
+    # Delete Data - is_active = False
+    def destroy(self, request, *args, **kwargs):
+        student = self.get_object()
+        student.is_active = False
+        student.save()
+        return Response(data='delete success')
 
 class StudentResultAPIView(viewsets.ModelViewSet):
 
-    queryset= StudentResultModel.objects.all()
+    queryset= StudentResultModel.objects.filter(is_active=True)
     serializer_class= StudentResultSerializers
-    # authentication_classes= [BasicAuthentication]
-    # permission_classes= [AllowAny]
+    authentication_classes= [JWTAuthentication]
+    permission_classes= [IsAuthenticated]
+
+    # Delete Data - is_active = False
+    def destroy(self, request, *args, **kwargs):
+        result = self.get_object()
+        result.is_active = False
+        result.save()
+        return Response(data='delete success')
+    
