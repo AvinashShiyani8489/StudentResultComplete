@@ -14,10 +14,12 @@ from AppResult.serialiazers import (
     RegisterUserSerializers,                                               # Custom User Register Serializer
     StudentRegistrationSerializers,                                        # Student Registrations Serializer
     StudentResultSerializers,                                              # Student Result Serializers 
+    EmailVerificationSerializers,                                            # Email Serializers 
+    LoginSerializers,
     )
 
 # Rest Framework 
-from rest_framework import status                                           # Set HTTP Status
+from rest_framework import serializers, status, views                                           # Set HTTP Status
 from rest_framework import generics                                         # Set Generic Method
 from rest_framework.response import Response                                # Response HTTP status
 from rest_framework import viewsets                                         # CRUD view route
@@ -37,7 +39,12 @@ from django.urls import reverse                                             # Re
 # Json Web token
 import jwt                                                                  # Decode Token for verification
 
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.authentication import BasicAuthentication
 
+# Swagger 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 
@@ -45,7 +52,7 @@ import jwt                                                                  # De
 class RegisterView(generics.GenericAPIView):
 
     serializer_class = RegisterUserSerializers
-
+    
     # POST Method for User Registertion
     def post(self, request):
         user = request.data
@@ -75,9 +82,23 @@ class RegisterView(generics.GenericAPIView):
 
         return Response(user_data,status=status.HTTP_201_CREATED)           # Give Status 
 
+    permission_classes= [AllowAny]
 
 ''' * Decode Token & Verify Email * '''
-class VerifyEmail(generics.GenericAPIView):
+# class(VerifyEmail(generics.GenericAPIView):
+class VerifyEmail(views.APIView):                           # views.APIView use for Swagger
+
+    # Set Serializers 
+    serializer_class = EmailVerificationSerializers
+    permission_classes= [AllowAny]
+    #Swagger 
+    token_param_config= openapi.Parameter(
+        'token',
+        in_=openapi.IN_QUERY,
+        description="description",
+        type=openapi.TYPE_STRING)
+
+    @swagger_auto_schema(manual_parameters=[token_param_config])
 
     # Get Method For Links and Token
     def get(self, request):
@@ -103,14 +124,25 @@ class VerifyEmail(generics.GenericAPIView):
             return Response({'error':'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Login API
+class LoginAPIView(generics.GenericAPIView):
+
+    # Serializers 
+    serializer_class= LoginSerializers
+    permission_classes= [AllowAny]
+    # Post Method 
+    def post(self, request):
+        serializer = self.serializer_class(data= request.data)
+        serializer.is_valid(raise_exception= True)
+
+        return Response(serializer.data, status= status.HTTP_200_OK)
 
 # Student Regitration API 
 class StudentRegistrationAPIView(viewsets.ModelViewSet):
 
     queryset= StudentRegistrationModel.objects.filter(is_active=True)
     serializer_class= StudentRegistrationSerializers
-    authentication_classes= [JWTAuthentication]
-    permission_classes= [IsAuthenticated]
+    permission_classes= [AllowAny]
 
     # Delete Data - is_active = False
     def destroy(self, request, *args, **kwargs):
@@ -123,8 +155,8 @@ class StudentResultAPIView(viewsets.ModelViewSet):
 
     queryset= StudentResultModel.objects.filter(is_active=True)
     serializer_class= StudentResultSerializers
-    authentication_classes= [JWTAuthentication]
-    permission_classes= [IsAuthenticated]
+    authentication_classes = [BasicAuthentication]
+    permission_classes= [AllowAny]
 
     # Delete Data - is_active = False
     def destroy(self, request, *args, **kwargs):

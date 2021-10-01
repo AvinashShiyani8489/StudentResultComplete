@@ -19,6 +19,9 @@ from pathlib import Path
 # Date & Time 
 from datetime import timedelta                      # Simple Json Web Token Setting 
 
+# Decouple for protect Data and Key 
+from decouple import config 
+
 ''' End - Import Module'''
 
 
@@ -30,10 +33,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6t4z5$md(%wk9us=p_v5)z1cvgz7d&%bd2xv&o5a3p6d)_(%^+'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -55,6 +58,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     # Authentication Token 
     'rest_framework.authtoken',
+    # Swagger 
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -175,7 +180,22 @@ REST_FRAMEWORK = {
         
         # Simple JSON Web Token - Authenticaiton 
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
+    
+    # Permission
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
+
+    # Throttle - 
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'anon': '10/day',
+    #     'user': '1000/day'
+    # }
 }
 
 
@@ -185,5 +205,5 @@ REST_FRAMEWORK = {
 EMAIL_USE_TLS= True
 EMAIL_HOST= 'smtp.gmail.com'
 EMAIL_PORT= 587
-EMAIL_HOST_USER= 'ks4223839@gmail.com'
-EMAIL_HOST_PASSWORD= '@Admin123'
+EMAIL_HOST_USER= config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD= config('EMAIL_HOST_PASSWORD')

@@ -13,12 +13,14 @@ from AppResult.views import (
    StudentResultAPIView,                                                                          # Register User View 
    VerifyEmail,                                                                           # Verify Email View 
    StudentRegistrationAPIView,                                                            # Student Registraion table 
+   LoginAPIView,                                                                          # Login Views 
    )
 
 
 
 
 """ * Set All URLS  * """
+
 
 # Set Router for Views
 router = DefaultRouter()
@@ -35,16 +37,17 @@ urlpatterns = [
    path('register/', RegisterView.as_view(), name='register'),                            
 
    # Verify Email- this link use in Sending Email.
-   path('email-verify/',VerifyEmail.as_view(), name= 'email-verify'),                     
+   path('email-verify/',VerifyEmail.as_view(), name= 'email-verify'),   
+
+   # Login User
+   path('login/',LoginAPIView.as_view(), name= 'login'),                  
    
    # Set Router URL
    path("api/",include(router.urls)),
    path("auth/", include("rest_framework.urls", namespace="rest_framework")),
 
    # Generate Access Token  
-   path("login/", TokenObtainPairView.as_view(), name="login"),
-
+   path("loginjwt/", TokenObtainPairView.as_view(), name="loginjwt"),
    # Generate Refresh Token
    path("refresh/",TokenRefreshView.as_view(), name="refreshtoken"),
-   
 ]

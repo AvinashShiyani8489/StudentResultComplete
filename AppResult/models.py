@@ -8,7 +8,8 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from rest_framework.fields import ReadOnlyField
 
-
+# JWT
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 """Create your models here."""
@@ -214,9 +215,16 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     def __str__(self):
         return self.username
-        
+
+    # For Login - LoginSerializers    
     def tokens(self):
-        return ''
+
+        refresh = RefreshToken.for_user(self)
+        
+        return{
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        } 
 
 
 # Student Registrations Model
